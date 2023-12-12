@@ -1,0 +1,282 @@
+/**************************************
+ * Струк Степан Андреевич             *
+ * 05.12.2023                         *
+ * Арифметика длинных чисел           *
+ * https://onlinegdb.com/cy_Vm2Gvd    *
+ **************************************/
+
+#include <iostream>
+#include <string>
+#include <vector>
+
+using namespace std;
+
+string getNormalAnswerType(vector<int> arrayAnswer, bool numberSign) {
+  string stringAnswer = "";
+  
+  bool outOfNulls = false;
+  
+  for (int symbol: arrayAnswer) {
+    
+    if (!outOfNulls && symbol == 0){
+      continue;
+    } else {
+      outOfNulls = true;
+      
+      stringAnswer += to_string(symbol);
+    }
+    
+  }
+  
+  return !numberSign ? "-" + stringAnswer : stringAnswer;
+}
+
+void rewrite(string stringNumber, vector<int>& normalNumber, int numberLen) {
+  for (int digitIndex = 0; digitIndex < numberLen; ++digitIndex) {
+    if (stringNumber[0] == '-') {
+      normalNumber[digitIndex] = stringNumber[digitIndex + 1] - '0';
+    } else {
+      normalNumber[digitIndex] = stringNumber[digitIndex] - '0';
+    }
+  }
+}
+
+//сравнение
+char comparison(vector<int> number1, vector<int> number2, int length1, int length2, bool number1Sign, bool number2Sign) {
+  int maximumLength = length1 > length2 ? length1 : length2;
+  
+  if (number1Sign && !number2Sign) {
+    return '>';
+  } else if (!number1Sign && number2Sign) {
+    return '<';
+  }
+  
+  vector<int> help1(maximumLength);
+  vector<int> help2(maximumLength);
+  
+  for (int digitIndex = maximumLength - length2; digitIndex < maximumLength; ++digitIndex) {
+    help2[digitIndex] += number2[digitIndex - (maximumLength - length2)];
+  }
+  for (int digitIndex = maximumLength - length1; digitIndex < maximumLength; ++digitIndex) {
+    help1[digitIndex] += number1[digitIndex - (maximumLength - length1)];
+  }
+  
+  for (int digitIndex = 0; digitIndex < maximumLength; ++digitIndex) {
+    if (help1[digitIndex] > help2[digitIndex]) {
+      if (number1Sign && number2Sign) {
+        return '>';
+      } else {
+        return '<';
+      }
+    } else if (help2[digitIndex] > help1[digitIndex]) {
+      if (number1Sign && number2Sign) {
+        return '<';
+      } else {
+        return '>';
+      }
+    }
+  }
+  return '=';
+}
+
+//сумма
+string addition(vector<int> number1, vector<int> number2, int length1, int length2, bool number1Sign, bool number2Sign) {
+  bool resultSign = number1Sign;
+  
+  int maximumLength = length1 > length2 ? length1 : length2;
+  
+  vector<int> help1(maximumLength);
+  vector<int> help2(maximumLength);
+  
+  for (int digitIndex = maximumLength - length2; digitIndex < maximumLength; ++digitIndex) {
+    help2[digitIndex] += number2[digitIndex - (maximumLength - length2)];
+  }
+  for (int digitIndex = maximumLength - length1; digitIndex < maximumLength; ++digitIndex) {
+    help1[digitIndex] += number1[digitIndex - (maximumLength - length1)];
+  }
+  
+  vector<int> summm(maximumLength + 1);
+  
+  for (int digitIndex = maximumLength - 1; digitIndex >= 0; --digitIndex) {
+    summm[digitIndex + 1] += (help1[digitIndex] + help2[digitIndex]) % 10;
+    summm[digitIndex] += (help1[digitIndex] + help2[digitIndex]) / 10;
+  }
+  
+  return getNormalAnswerType(summm, resultSign);
+}
+
+//разность
+string difference(vector<int> number1, vector<int> number2, int length1, int length2, bool number1Sign, bool number2Sign) {
+  bool resultSign = false;
+  
+  int maximumLength = length1 > length2 ? length1 : length2;
+  
+  vector<int> help1(maximumLength);
+  vector<int> help2(maximumLength);
+  
+  if ( comparison(number1, number2, length1, length2, true, true) == '<') {
+    
+    for (int digitIndex = maximumLength - length2; digitIndex < maximumLength; ++digitIndex) {
+      help1[digitIndex] += number2[digitIndex - (maximumLength - length2)];
+    }
+    for (int digitIndex = maximumLength - length1; digitIndex < maximumLength; ++digitIndex) {
+      help2[digitIndex] += number1[digitIndex - (maximumLength - length1)];
+    }
+    
+  } else {
+    
+    for (int digitIndex = maximumLength - length2; digitIndex < maximumLength; ++digitIndex) {
+      help2[digitIndex] += number2[digitIndex - (maximumLength - length2)];
+    }
+    for (int digitIndex = maximumLength - length1; digitIndex < maximumLength; ++digitIndex) {
+      help1[digitIndex] += number1[digitIndex - (maximumLength - length1)];
+    }
+    
+    resultSign = true;
+  }
+  
+  vector<int> difff(maximumLength);
+  
+  if ( comparison(number1, number2, length1, length2, number1Sign, number2Sign) == '=' ) {
+    cout << 0;
+  } else {
+    
+    for (int digitIndex = maximumLength - 1; digitIndex >= 0; --digitIndex) {
+      difff[digitIndex] += help1[digitIndex] - help2[digitIndex];
+      
+      if (difff[digitIndex] < 0) {
+        ++++++++++++++++++++difff[digitIndex];
+        --difff[digitIndex - 1];
+      }
+      
+    }
+    
+  }
+  
+  return getNormalAnswerType(difff, resultSign);
+}
+
+//умножение
+string multiplication(vector<int> number1, vector<int> number2, int length1, int length2, bool number1Sign, bool number2Sign) {
+  bool resultSign = (number1Sign + number2Sign) % 2 != 1;
+  
+  vector<int> mulll(length1 + length2);
+  
+  for (int digit2Index = length2 - 1; digit2Index >= 0; --digit2Index) {
+      
+    for (int digit1Index = length1 - 1; digit1Index >= 0; --digit1Index) {
+      mulll[digit1Index + digit2Index + 1] += (number1[digit1Index] * number2[digit2Index]) % 10;
+      mulll[digit1Index + digit2Index] += (number1[digit1Index] * number2[digit2Index]) / 10;
+      
+      if (mulll[digit1Index + digit2Index + 1] >= 10) {
+        mulll[digit1Index + digit2Index] += mulll[digit1Index + digit2Index + 1] / 10;
+        mulll[digit1Index + digit2Index + 1] = mulll[digit1Index + digit2Index + 1] % 10;
+      }
+      
+    }
+    
+  }
+  
+  return getNormalAnswerType(mulll, resultSign);
+}
+
+string calculator(string stringNumber1, string stringNumber2, char operation) {
+  char currentOperation = operation;
+  
+  bool number1Sign = stringNumber1[0] != '-';
+  bool number2Sign = stringNumber2[0] != '-';
+  
+  int number1Length = stringNumber1[0] == '-' ? stringNumber1.size() - 1: stringNumber1.size();
+  int number2Length = stringNumber2[0] == '-' ? stringNumber2.size() - 1: stringNumber2.size();
+  
+  vector<int> number1Array(number1Length);
+  vector<int> number2Array(number2Length);
+  
+  rewrite(stringNumber1, number1Array, number1Length);
+  rewrite(stringNumber2, number2Array, number2Length);
+  
+  string result;
+  
+  switch (currentOperation) {
+    case '+':
+      if (!number2Sign && !number1Sign) {
+        result = addition(number1Array, number2Array, number1Length, number2Length, number1Sign, number2Sign);
+        break;
+      } else if (number2Sign && number1Sign) {
+        result = addition(number1Array, number2Array, number1Length, number2Length, number1Sign, number2Sign);
+        break;
+      } else if (number1Sign && !number2Sign) {
+        result = difference(number1Array, number2Array, number1Length, number2Length, number1Sign, !number2Sign);
+        break;
+      } else if (!number1Sign && number2Sign) {
+        result = difference(number2Array, number1Array, number2Length, number1Length, number2Sign, !number1Sign);
+        break;
+      }
+    case '-':
+      if (!number2Sign && !number1Sign) {
+        result = difference(number2Array, number1Array, number2Length, number1Length, number2Sign, !number1Sign);
+        break;
+      } else if (number2Sign && number1Sign) {
+        result = difference(number1Array, number2Array, number1Length, number2Length, number1Sign, number2Sign);
+        break;
+      } else if (number1Sign && !number2Sign) {
+        result = addition(number1Array, number2Array, number1Length, number2Length, number1Sign, !number2Sign);
+        break;
+      } else if (!number1Sign && number2Sign) {
+        result = addition(number2Array, number1Array, number2Length, number1Length, number1Sign, !number2Sign);
+        break;
+      }
+    case '*':
+      result = multiplication(number1Array, number2Array, number1Length, number2Length, number1Sign, number2Sign);
+      break;
+    case '?':
+      result = comparison(number1Array, number2Array, number1Length, number2Length, number1Sign, number2Sign);
+      break;
+    default:
+      cout << "i'm already dead" << endl;
+      break;
+  }
+  
+  return result;
+}
+
+int main() {
+  int numbersCount;
+  char currentOperation = ' ';
+  
+  while (currentOperation == ' ') {
+    cout << "addition -> +\ndifference -> -\nmultiplication -> *\ncomparison -> ?" << endl;
+    cin >> currentOperation;
+  
+    cout << "skolko?" << endl;
+    cin >> numbersCount;
+    
+    if (currentOperation == '?' && numbersCount != 2) {
+      cout << "error. try again. " << endl << endl;
+      currentOperation = ' ';
+    }
+  }
+  
+  string stringNumber1;
+  string stringNumber2;
+  
+  cout << "enter number: ";
+  cin >> stringNumber1;
+  --numbersCount;
+  
+  while (numbersCount > 0) {
+    cout << "enter number: ";
+    cin >> stringNumber2;
+    
+    --numbersCount;
+    
+    stringNumber1 = calculator(stringNumber1, stringNumber2, currentOperation);
+  }
+  
+  string result = stringNumber1;
+  
+  cout << result;
+  return 0;
+}
+
+
